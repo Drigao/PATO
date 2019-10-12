@@ -1,18 +1,8 @@
 const fetch = require('node-fetch');
 const jsonata = require('jsonata');
+const {apiUrl, cinemas} = require('../config/cinesa');
+const dateFormat = require('dateformat');
 
-const cities = {
-    "madrid": "28000"
-};
-
-const cinemas = {
-    "parquesur": {
-        "code": "190",
-        "city": "28000"
-    }
-};
-
-const apiUrl = 'https://www.cinesa.es/Cines/Horarios/';
 
 
 const formatInfo = data => {
@@ -21,10 +11,11 @@ const formatInfo = data => {
     });
     const movies = today.peliculas;
     const formated = movies.map(movie => {
-        var timetable = jsonata('cines.tipos.salas.**.sesiones.{"hour": hora, "link": ao}').evaluate(movie);
+        var timetable = jsonata('cines.tipos.salas.**.sesiones.{"hour": hora, "purchase_link": ao}').evaluate(movie);
         return {
-            'movie': movie.titulo,
-            'schedule': JSON.stringify(timetable)
+            'title': movie.titulo,
+            'cover': movie.cartel,
+            'schedule': timetable
         }
     });
     return formated;
@@ -32,7 +23,7 @@ const formatInfo = data => {
 const getRawInfo = (cinema) => fetch(apiUrl + cinemas[cinema].code + '/' + cinemas[cinema].city)
     .then(res => res.json());
 
-const getMoviesInfo = (cinema) => getRawInfo(cinema).then(formatInfo)
+const getMoviesInfo = (cinema, day) => getRawInfo(cinema).then(formatInfo)
 
 module.exports = {
     getRawInfo,
